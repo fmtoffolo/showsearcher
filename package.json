@@ -1,0 +1,39 @@
+{
+    "name": "showsearcher",
+    "version": "0.1.24",
+    "description": "Search your favourite shows for a torrent or magnet file. Now with subtitles!",
+    "main": "index.js",
+    "tags": [
+        "torrent",
+        "tv",
+        "search",
+        "shows",
+        "open subtitles",
+        "subtitles"
+    ],
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": {
+        "name": "Fernando Toffolo"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "opensubtitles-client": "^1.1.4",
+        "q": "^1.0.1",
+        "request": "*",
+        "xml2js": "*"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fmtoffolo/showSearcher.git"
+    },
+    "readme": "show searcher\r\n=========\r\n\r\nSearch your show, get torrent file.\r\n\r\n## Installation\r\n\r\n  npm install showsearcher --save\r\n\r\n## Usage\r\n\r\n  var showsearcher = require('showsearcher');\r\n      \r\n\r\n  showsearcher({name: 'game of thrones',season: 4, episode:2, quality: '720p'}, function(err, result){\r\n  \tif(!err){\r\n  \t  console.log(result);\r\n\t}else{\r\n\t  console.log(err);\r\n\t}\r\n\t\r\n  });",
+    "readmeFilename": "README.md",
+    "bugs": {
+        "url": "https://github.com/fmtoffolo/showSearcher/issues"
+    },
+    "homepage": "https://github.com/fmtoffolo/showSearcher",
+    "_id": "showsearcher@0.1.17",
+    "_from": "showsearcher@"
+}
