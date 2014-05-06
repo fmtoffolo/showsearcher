@@ -1,3 +1,5 @@
+[![NPM](https://nodei.co/npm/showsearcher.png?downloads=true&stars=true)](https://nodei.co/npm/showsearcher/)
+
 show searcher
 =========
 
