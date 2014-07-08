@@ -16,7 +16,6 @@ var getSubtitles = function(showData, callback) {
                     function(results) {
                         var langList = [];
                         var subtitles = [];
-                        console.log(results);
 
                         var addUTF = function(url) {
                             var a = url;
