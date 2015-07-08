@@ -78,7 +78,7 @@ var getSubtitles = function(showData, callback) {
                                 return b.SubDownloadsCnt - a.SubDownloadsCnt;
                             })
 
-                            subtitles.push({ //pushes exact match to subtitles array
+                            subtitles.push({ //pushes not exact match to subtitles array
                                 subtitleURL: addUTF(unsureLangSubs[0].SubDownloadLink),
                                 zipURL: addUTF(unsureLangSubs[0].ZipDownloadLink),
                                 srtURL: addUTF(unsureLangSubs[0].SubDownloadLink).slice(0, addUTF(unsureLangSubs[0].SubDownloadLink).length - 2) + 'srt',
@@ -91,9 +91,14 @@ var getSubtitles = function(showData, callback) {
 
                         };
 
+                        //at this point we have 2 arrays. One with exact matches and without. Both have only one sub per language, the exact match or the most popular one which should work for us.
 
+                        showData.subtitles = {}; //add subtitles object to fill in.
 
-                        showData.subtitles = subtitles; //add array to general show object
+                        for (var i = 0; i < subtitles.length; i++) {//we create an object where the key is the lang code for easy selection.
+                            showData.subtitles[subtitles[i].ISO639] = subtitles[i].srtURL;
+                        };
+
                         deferred.resolve(showData);
                     }
                 );
@@ -219,7 +224,7 @@ var getShow = function(options, callback) {
     }
 
 
-    var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality;// + ' ' + filters + ' seeds:100 verified:1';
+    var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality; // + ' ' + filters + ' seeds:100 verified:1';
 
     originalRequest = {
         showName: options.name,
