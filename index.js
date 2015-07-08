@@ -96,7 +96,7 @@ var getSubtitles = function(showData, callback) {
                         showData.subtitles = subtitles; //add array to general show object
                         deferred.resolve(showData);
                     }
-            );
+                );
         });
 
     return deferred.promise.nodeify(callback);
@@ -104,10 +104,13 @@ var getSubtitles = function(showData, callback) {
 
 //searching for the torrent
 var getSearchRSS = function(searchString, callback) {
-    var requestURL = 'http://kickass.to/usearch/' + searchString,
+    console.log(searchString);
+    // var requestURL = 'http://kat.cr/usearch/' + searchString,
+    var requestURL = 'http://kat.cr/usearch/the%20flash%20s01e22%20720p/?rss=1',
         deferred = Q.defer();
 
     request(requestURL, function(error, response, body) {
+        console.log(response);
         if (!error && response.statusCode == 200) {
             deferred.resolve(body);
         } else {
@@ -207,11 +210,10 @@ var getShow = function(options, callback) {
         case '1080p':
             filters = '-720p';
             break;
-
     }
 
 
-    var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality + ' ' + filters + ' seeds:100 verified:1/?rss=1';
+    var searchString = encodeURIComponent(name) + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality + ' ' + filters + ' seeds:100 verified:1/?rss=1';
 
     originalRequest = {
         showName: options.name,
@@ -238,7 +240,7 @@ module.exports = function(options, callback) {
             deferred.resolve(finalData);
         })
         .
-    catch (function(error) {
+    catch(function(error) {
         deferred.reject(error);
     });
     return deferred.promise.nodeify(callback);
