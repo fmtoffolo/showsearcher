@@ -95,7 +95,7 @@ var getSubtitles = function(showData, callback) {
 
                         showData.subtitles = {}; //add subtitles object to fill in.
 
-                        for (var i = 0; i < subtitles.length; i++) {//we create an object where the key is the lang code for easy selection.
+                        for (var i = 0; i < subtitles.length; i++) { //we create an object where the key is the lang code for easy selection.
                             showData.subtitles[subtitles[i].ISO639] = subtitles[i].srtURL;
                         };
 
@@ -115,28 +115,13 @@ var getSearchRSS = function(searchString, callback) {
     request(requestURL + searchString, function(error, response, body) {
         body = JSON.parse(body);
         if (!error && response.statusCode == 200) {
-            if (body.list) {
+            if (body.list.length) {
                 deferred.resolve(body.list);
             } else {
                 deferred.reject(new Error('Episode not found'));
             }
         } else {
             deferred.reject(new Error('Episode not found'));
-        }
-    });
-
-    return deferred.promise.nodeify(callback);
-}
-
-//just parsing the search response
-var parseRSS = function(rawBody, callback) {
-    var deferred = Q.defer();
-
-    parser.parseString(rawBody, function(err, result) {
-        if (!err) {
-            deferred.resolve(result);
-        } else {
-            deferred.reject(new Error('Couldn\'t parse response'));
         }
     });
 
@@ -242,15 +227,13 @@ module.exports = function(options, callback) {
 
     var promise = getShow(options);
     promise.then(getSearchRSS)
-        // .then(parseRSS)
         .then(findBestTorrent)
         .then(getSubtitles)
         .then(function(finalData) {
             deferred.resolve(finalData);
         })
-        .
-    catch(function(error) {
-        deferred.reject(error);
-    });
+        .catch(function(error) {
+            deferred.reject(error);
+        });
     return deferred.promise.nodeify(callback);
 }
