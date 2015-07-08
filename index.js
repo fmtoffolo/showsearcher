@@ -96,7 +96,7 @@ var getSubtitles = function(showData, callback) {
                         showData.subtitles = subtitles; //add array to general show object
                         deferred.resolve(showData);
                     }
-            );
+                );
         });
 
     return deferred.promise.nodeify(callback);
@@ -104,12 +104,16 @@ var getSubtitles = function(showData, callback) {
 
 //searching for the torrent
 var getSearchRSS = function(searchString, callback) {
-    var requestURL = 'http://kickass.to/usearch/' + searchString,
+    var requestURL = 'http://kat.cr/json.php',
         deferred = Q.defer();
 
-    request(requestURL, function(error, response, body) {
+    request(requestURL + searchString, function(error, response, body) {
         if (!error && response.statusCode == 200) {
-            deferred.resolve(body);
+            if (body.list) {
+                deferred.resolve(body.list);
+            } else {
+                deferred.reject(new Error('Episode not found'));
+            }
         } else {
             deferred.reject(new Error('Episode not found'));
         }
@@ -135,13 +139,17 @@ var parseRSS = function(rawBody, callback) {
 
 //get the parsed rss, sort by seeds and get the best.
 var findBestTorrent = function(data, callback) {
-    var torrentList = data.rss.channel[0].item,
+    var torrentList = data,
         bestTorrent,
+        fileName,
         deferred = Q.defer();
 
     torrentList.sort(function(a, b) {
-        return b['torrent:seeds'] - a['torrent:seeds'];
+        return b.seeds - a.seeds;
     });
+
+    fileName = torrentList[0].torrentLink;
+    fileName = filename.substring(fileName.indexOf('[kat.cr]') + ('[kat.cr]').length, fileName.length);
 
     bestTorrent = {
         showName: originalRequest.showName,
@@ -150,8 +158,8 @@ var findBestTorrent = function(data, callback) {
         quality: originalRequest.quality,
         torrentData: {
             title: torrentList[0].title[0],
-            seeds: torrentList[0]['torrent:seeds'][0],
-            fileName: torrentList[0]['torrent:fileName'][0].slice(0, torrentList[0]['torrent:fileName'][0].length - 8),
+            seeds: torrentList[0].seeds,
+            fileName: fileName,
             torrent: torrentList[0].enclosure[0].$.url,
             magnetURI: torrentList[0]['torrent:magnetURI'][0],
             fileSize: torrentList[0].enclosure[0].$.length
@@ -238,7 +246,7 @@ module.exports = function(options, callback) {
             deferred.resolve(finalData);
         })
         .
-    catch (function(error) {
+    catch(function(error) {
         deferred.reject(error);
     });
     return deferred.promise.nodeify(callback);
