@@ -104,10 +104,11 @@ var getSubtitles = function(showData, callback) {
 
 //searching for the torrent
 var getSearchRSS = function(searchString, callback) {
-    var requestURL = 'http://kat.cr/json.php',
+    var requestURL = 'http://kat.cr/json.php?q=',
         deferred = Q.defer();
 
     request(requestURL + searchString, function(error, response, body) {
+        body = JSON.parse(body);
         if (!error && response.statusCode == 200) {
             if (body.list) {
                 deferred.resolve(body.list);
@@ -149,7 +150,7 @@ var findBestTorrent = function(data, callback) {
     });
 
     fileName = torrentList[0].torrentLink;
-    fileName = filename.substring(fileName.indexOf('[kat.cr]') + ('[kat.cr]').length, fileName.length);
+    fileName = fileName.substring(fileName.indexOf('[kat.cr]') + ('[kat.cr]').length, fileName.length);
 
     bestTorrent = {
         showName: originalRequest.showName,
@@ -157,12 +158,11 @@ var findBestTorrent = function(data, callback) {
         episode: originalRequest.episode,
         quality: originalRequest.quality,
         torrentData: {
-            title: torrentList[0].title[0],
+            title: torrentList[0].title,
             seeds: torrentList[0].seeds,
             fileName: fileName,
-            torrent: torrentList[0].enclosure[0].$.url,
-            magnetURI: torrentList[0]['torrent:magnetURI'][0],
-            fileSize: torrentList[0].enclosure[0].$.length
+            torrent: torrentList[0].torrentLink,
+            fileSize: torrentList[0].size
         }
     }
 
@@ -219,7 +219,7 @@ var getShow = function(options, callback) {
     }
 
 
-    var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality + ' ' + filters + ' seeds:100 verified:1/?rss=1';
+    var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality;// + ' ' + filters + ' seeds:100 verified:1';
 
     originalRequest = {
         showName: options.name,
@@ -239,7 +239,7 @@ module.exports = function(options, callback) {
 
     var promise = getShow(options);
     promise.then(getSearchRSS)
-        .then(parseRSS)
+        // .then(parseRSS)
         .then(findBestTorrent)
         .then(getSubtitles)
         .then(function(finalData) {

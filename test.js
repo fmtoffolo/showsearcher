@@ -16,10 +16,10 @@ var Q = require('q');
 // });
 
 showsearcher({
-    name: 'the mentalist',
-    season: 6,
-    episode: 17,
-    quality: 'hdtv'
+    name: 'the flash',
+    season: 1,
+    episode: 22,
+    quality: '720p'
 })    .then(function(finalData) {
         console.log(finalData);
     })
