@@ -1,7 +1,7 @@
 {
     "name": "showsearcher",
-    "version": "0.1.24",
-    "description": "Search your favourite shows for a torrent or magnet file. Now with subtitles!",
+    "version": "0.2.0",
+    "description": "Search your favourite shows for a torrent file. Now with subtitles!",
     "main": "index.js",
     "tags": [
         "torrent",

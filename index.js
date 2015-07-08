@@ -133,13 +133,37 @@ var findBestTorrent = function(data, callback) {
     var torrentList = data,
         bestTorrent,
         fileName,
-        deferred = Q.defer();
+        deferred = Q.defer(),
+        index = 0,
+        groups = /(ettv|eztv|rarbg|publichd|0SEC|GloDLS)/g,
+        filters;
 
     torrentList.sort(function(a, b) {
         return b.seeds - a.seeds;
     });
 
-    fileName = torrentList[0].torrentLink;
+    
+    switch (originalRequest.quality) {
+        case 'hdtv':
+            filters = /720p|1080p/g;
+            break;
+        case '720p':
+            filters = /1080p/g;
+            break;
+        case '1080p':
+            filters = /720p/g;
+            break;
+    }
+
+    for (var i = 0; i < torrentList.length; i++) {
+        if (torrentList[i].torrentLink.search(groups) != -1 && torrentList[i].torrentLink.search(filters) != -1) {
+            index = i;
+            break;
+        };
+    };
+
+
+    fileName = torrentList[index].torrentLink;
     fileName = fileName.substring(fileName.indexOf('[kat.cr]') + ('[kat.cr]').length, fileName.length);
 
     bestTorrent = {
@@ -148,11 +172,11 @@ var findBestTorrent = function(data, callback) {
         episode: originalRequest.episode,
         quality: originalRequest.quality,
         torrentData: {
-            title: torrentList[0].title,
-            seeds: torrentList[0].seeds,
+            title: torrentList[index].title,
+            seeds: torrentList[index].seeds,
             fileName: fileName,
-            torrent: torrentList[0].torrentLink,
-            fileSize: torrentList[0].size
+            torrent: torrentList[index].torrentLink,
+            fileSize: torrentList[index].size
         }
     }
 
@@ -193,18 +217,6 @@ var getShow = function(options, callback) {
     if (quality.indexOf(options.quality) < 0) {
         //return callback(new Error('Quality not valid'));
         deferred.reject(new Error('Invalid quality value'));
-    }
-
-    switch (options.quality) {
-        case 'hdtv':
-            filters = '-720p -1080p';
-            break;
-        case '720p':
-            filters = '-1080p';
-            break;
-        case '1080p':
-            filters = '-720p';
-            break;
     }
 
     var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality; // + ' ' + filters + ' seeds:100 verified:1';

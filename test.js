@@ -2,9 +2,9 @@ var showsearcher = require('./index.js');
 
 showsearcher({
         name: 'the flash',
-        season: 2,
+        season: 1,
         episode: 22,
-        quality: '720p'
+        quality: '1080p'
     }).then(function(finalData) {
         console.log(finalData);
     })
