@@ -78,7 +78,7 @@ var getSubtitles = function(showData, callback) {
                                 return b.SubDownloadsCnt - a.SubDownloadsCnt;
                             })
 
-                            subtitles.push({ //pushes exact match to subtitles array
+                            subtitles.push({ //pushes not exact match to subtitles array
                                 subtitleURL: addUTF(unsureLangSubs[0].SubDownloadLink),
                                 zipURL: addUTF(unsureLangSubs[0].ZipDownloadLink),
                                 srtURL: addUTF(unsureLangSubs[0].SubDownloadLink).slice(0, addUTF(unsureLangSubs[0].SubDownloadLink).length - 2) + 'srt',
@@ -91,9 +91,14 @@ var getSubtitles = function(showData, callback) {
 
                         };
 
+                        //at this point we have 2 arrays. One with exact matches and without. Both have only one sub per language, the exact match or the most popular one which should work for us.
 
+                        showData.subtitles = {}; //add subtitles object to fill in.
 
-                        showData.subtitles = subtitles; //add array to general show object
+                        for (var i = 0; i < subtitles.length; i++) {//we create an object where the key is the lang code for easy selection.
+                            showData.subtitles[subtitles[i].ISO639] = subtitles[i].srtURL;
+                        };
+
                         deferred.resolve(showData);
                     }
                 );
@@ -104,15 +109,17 @@ var getSubtitles = function(showData, callback) {
 
 //searching for the torrent
 var getSearchRSS = function(searchString, callback) {
-    console.log(searchString);
-    // var requestURL = 'http://kat.cr/usearch/' + searchString,
-    var requestURL = 'http://kat.cr/usearch/the%20flash%20s01e22%20720p/?rss=1',
+    var requestURL = 'http://kat.cr/json.php?q=',
         deferred = Q.defer();
 
-    request(requestURL, function(error, response, body) {
-        console.log(response);
+    request(requestURL + searchString, function(error, response, body) {
+        body = JSON.parse(body);
         if (!error && response.statusCode == 200) {
-            deferred.resolve(body);
+            if (body.list) {
+                deferred.resolve(body.list);
+            } else {
+                deferred.reject(new Error('Episode not found'));
+            }
         } else {
             deferred.reject(new Error('Episode not found'));
         }
@@ -138,13 +145,17 @@ var parseRSS = function(rawBody, callback) {
 
 //get the parsed rss, sort by seeds and get the best.
 var findBestTorrent = function(data, callback) {
-    var torrentList = data.rss.channel[0].item,
+    var torrentList = data,
         bestTorrent,
+        fileName,
         deferred = Q.defer();
 
     torrentList.sort(function(a, b) {
-        return b['torrent:seeds'] - a['torrent:seeds'];
+        return b.seeds - a.seeds;
     });
+
+    fileName = torrentList[0].torrentLink;
+    fileName = fileName.substring(fileName.indexOf('[kat.cr]') + ('[kat.cr]').length, fileName.length);
 
     bestTorrent = {
         showName: originalRequest.showName,
@@ -152,12 +163,11 @@ var findBestTorrent = function(data, callback) {
         episode: originalRequest.episode,
         quality: originalRequest.quality,
         torrentData: {
-            title: torrentList[0].title[0],
-            seeds: torrentList[0]['torrent:seeds'][0],
-            fileName: torrentList[0]['torrent:fileName'][0].slice(0, torrentList[0]['torrent:fileName'][0].length - 8),
-            torrent: torrentList[0].enclosure[0].$.url,
-            magnetURI: torrentList[0]['torrent:magnetURI'][0],
-            fileSize: torrentList[0].enclosure[0].$.length
+            title: torrentList[0].title,
+            seeds: torrentList[0].seeds,
+            fileName: fileName,
+            torrent: torrentList[0].torrentLink,
+            fileSize: torrentList[0].size
         }
     }
 
@@ -212,8 +222,7 @@ var getShow = function(options, callback) {
             break;
     }
 
-
-    var searchString = encodeURIComponent(name) + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality + ' ' + filters + ' seeds:100 verified:1/?rss=1';
+    var searchString = name + ' s' + seasonString + 'e' + episodeString + ' ' + options.quality; // + ' ' + filters + ' seeds:100 verified:1';
 
     originalRequest = {
         showName: options.name,
@@ -233,7 +242,7 @@ module.exports = function(options, callback) {
 
     var promise = getShow(options);
     promise.then(getSearchRSS)
-        .then(parseRSS)
+        // .then(parseRSS)
         .then(findBestTorrent)
         .then(getSubtitles)
         .then(function(finalData) {
